@@ -4,6 +4,7 @@ using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.IO;
 using System.Linq;
+using Microsoft.SqlServer.Management.Common;
 using Microsoft.SqlServer.Management.Smo;
 
 namespace sql2fs
@@ -26,13 +27,19 @@ namespace sql2fs
             {
                 new Option<string>(
                     new[] { "--server", "-s" },
-                    description: "SQL Server conection (IP address, named instance, machine name)"),
-                new Option<string>(
-                    new[] { "--directory", "-dir" },
-                    description: "Directory to store the files"),
+                    description: "Required: Connect to a SQL Server instance"),
                 new Option<string>(
                     new[] { "--database", "-d" },
-                    description: "Specific database to connect to, otherwise first database"),
+                    description: "Optional: Connect to a specific database"),
+                new Option<string>(
+                    new[] { "--directory", "-dir" },
+                    description: "Optional: Directory to store the files"),
+                new Option<string>(
+                    new[] { "--username", "-u" },
+                    description: "Optional: Username to connect connect to the server"),
+                new Option<string>(
+                    new[] { "--password", "-p" },
+                    description: "Optional: Password to connect to the server"),
                 new Option<string>(
                     new[] { "--types", "-t" },
                     getDefaultValue: () => "all",
@@ -42,7 +49,7 @@ namespace sql2fs
                     getDefaultValue: () => false,
                     description: "Clean the provided directory before saving documentation"),
                 new Option<bool>(
-                    new[] { "--prune", "-p" },
+                    new[] { "--prune" },
                     getDefaultValue: () => true,
                     description: "Remove any existing file if the object doesn't exist"),
                 new Option<bool>(
@@ -64,8 +71,8 @@ namespace sql2fs
             };
             rootCommand.Description = "A tool for creating a file-system representation of a SQL Server database.";
 
-            rootCommand.Handler = CommandHandler.Create<string, string, string, string, string, string, string, string, bool, bool, bool>
-                ((types, directory, server, database, nameinclude, nameexclude, schemainclude, schemaexclude, clean, prune, ignoreencryption) =>
+            rootCommand.Handler = CommandHandler.Create<string, string, string, string, string, string, string, string, string, string, bool, bool, bool>
+                ((types, directory, server, username, password, database, nameinclude, nameexclude, schemainclude, schemaexclude, clean, prune, ignoreencryption) =>
             {
                 try
                 {
@@ -116,7 +123,14 @@ namespace sql2fs
                     }
 
                     Console.WriteLine($"Connecting to {server}...");
-                    var srv = new Server(server);
+                    ServerConnection conn = null;
+
+                    if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
+                        conn = new ServerConnection(server, username, password);
+                    else
+                        conn = new ServerConnection(server);
+
+                    var srv = new Server(conn);
                     var db = srv.Databases[database];
 
                     var ninclude = nameinclude.Split(',').Where(s => !string.IsNullOrEmpty(s)).ToArray();
