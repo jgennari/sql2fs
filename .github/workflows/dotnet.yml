@@ -44,7 +44,7 @@ jobs:
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: /home/runner/work/sql2fs/sql2fs/bin/Debug/net5.0/win-x64/${{ matrix.artifact_name }}
+        file: /home/runner/work/sql2fs/sql2fs/bin/Debug/net5.0/${{ matrix.platform }}/${{ matrix.artifact_name }}
         asset_name: ${{ matrix.asset_name }}
         tag: ${{ github.ref }}
         overwrite: true
