@@ -30,7 +30,7 @@ jobs:
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: /home/runner/work/sql2fs/sql2fs/bin/Debug/net5.0
+        file: /home/runner/work/sql2fs/sql2fs/bin/Debug/net5.0/*/*
         asset_name: sql2fs
         tag: ${{ github.ref }}
         overwrite: true
